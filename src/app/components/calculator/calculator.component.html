@@ -1,0 +1,127 @@
+<div class="calculator-container">
+  <header>
+    <h1>Baker's Percentage Calculator</h1>
+    <p class="subtitle">Calculate ingredient weights using baker's percentages</p>
+  </header>
+
+  <!-- Mode Toggle -->
+  <div class="mode-toggle">
+    <button
+      class="toggle-button"
+      [class.active]="!useDoughBallMode()"
+      (click)="setDoughBallMode(false)">
+      Flour Weight Mode
+    </button>
+    <button
+      class="toggle-button"
+      [class.active]="useDoughBallMode()"
+      (click)="setDoughBallMode(true)">
+      Target Dough Weight Mode
+    </button>
+  </div>
+
+  <!-- Flour Weight Input (Normal Mode) -->
+  @if (!useDoughBallMode()) {
+    <div class="preset-selector">
+      <label for="preset">Load Recipe Template:</label>
+      <select id="preset" (change)="loadPreset($any($event.target).value)">
+        <option value="">-- Select a preset --</option>
+        @for (preset of presets; track preset.name) {
+          <option [value]="preset.name">{{ preset.name }} - {{ preset.description }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="flour-weight-input">
+      <label for="totalFlour">Total Flour Weight:</label>
+      <input
+        id="totalFlour"
+        type="number"
+        [value]="totalFlourWeight()"
+        (input)="onTotalFlourWeightChange($any($event.target).value)"
+        min="0"
+        step="10"
+      />
+      <span class="unit">g</span>
+    </div>
+  }
+
+  <!-- Target Dough Ball Weight Input (Dough Ball Mode) -->
+  @if (useDoughBallMode()) {
+    <div class="dough-ball-weight-input">
+      <label for="targetDoughBall">Target Total Dough Weight:</label>
+      <input
+        id="targetDoughBall"
+        type="number"
+        [value]="targetDoughBallWeight()"
+        (input)="onTargetDoughBallWeightChange($any($event.target).value)"
+        min="0"
+        step="10"
+      />
+      <span class="unit">g</span>
+      <div class="mode-info">
+        <small>Total %: {{ totalPercentage() }}% | Calculated Flour: {{ totalFlourWeight() }}g</small>
+      </div>
+    </div>
+  }
+
+  <div class="ingredients-section">
+    <div class="ingredients-header">
+      <span class="col-name">Ingredient</span>
+      <span class="col-percentage">Percentage</span>
+      <span class="col-weight">Weight</span>
+      <span class="col-actions"></span>
+    </div>
+
+    @for (ingredient of ingredients(); track ingredient.id) {
+      <app-ingredient-row
+        [ingredient]="ingredient"
+        [isFlourRow]="ingredient.isFlour || false"
+        [isPercentageEditable]="isPercentageEditable(ingredient)"
+        (percentageChange)="onPercentageChange($event)"
+        (weightChange)="onWeightChange($event)"
+        (nameChange)="onNameChange($event)"
+        (remove)="onRemoveIngredient($event)"
+      />
+    }
+
+    <button class="add-ingredient-btn" (click)="addIngredient()">
+      + Add Ingredient
+    </button>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-item">
+      <span class="label">Total Dough Weight:</span>
+      <span class="value">{{ totalWeight() }} g</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">Hydration:</span>
+      <span class="value">{{ hydration() }}%</span>
+    </div>
+
+    @if (saltWarning()) {
+      <div class="warning">
+        {{ saltWarning() }}
+      </div>
+    }
+
+    @if (hydrationWarning()) {
+      <div class="info">
+        {{ hydrationWarning() }}
+      </div>
+    }
+  </div>
+
+  <div class="info-section">
+    <h3>About Baker's Percentages</h3>
+    <p>
+      In baker's percentages, flour is always 100% and all other ingredients are calculated
+      as a percentage of the total flour weight. This allows recipes to be easily scaled
+      while maintaining the same ratios.
+    </p>
+    <p>
+      <strong>Example:</strong> 70% hydration means 700g of water per 1000g of flour.
+    </p>
+  </div>
+</div>

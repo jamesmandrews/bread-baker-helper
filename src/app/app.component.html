@@ -1,0 +1,41 @@
+<div class="app-container">
+  <header class="app-header">
+    <h1>Bread Helper</h1>
+    <p class="tagline">Tools for better baking</p>
+  </header>
+
+  <nav class="tab-navigation">
+    <button
+      class="tab-button"
+      [class.active]="activeTab() === 'bakers-percentage'"
+      (click)="selectTab('bakers-percentage')">
+      Baker's Percentage Calculator
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab() === 'doughball'"
+      (click)="selectTab('doughball')">
+      Pizza Doughball Calculator
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeTab() === 'pan-volume'"
+      (click)="selectTab('pan-volume')">
+      Pan Volume Calculator
+    </button>
+  </nav>
+
+  <main class="tab-content">
+    @if (activeTab() === 'bakers-percentage') {
+      <app-calculator></app-calculator>
+    }
+    @if (activeTab() === 'doughball') {
+      <app-doughball-calculator></app-doughball-calculator>
+    }
+    @if (activeTab() === 'pan-volume') {
+      <app-pan-volume-calculator></app-pan-volume-calculator>
+    }
+  </main>
+</div>
+
+<router-outlet />

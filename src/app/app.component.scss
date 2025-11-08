@@ -1,0 +1,115 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: #fafafa;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.app-header {
+  background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+  color: white;
+  text-align: center;
+  padding: 2rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .tagline {
+    margin: 0.5rem 0 0 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 300;
+  }
+}
+
+.tab-navigation {
+  background: white;
+  display: flex;
+  border-bottom: 2px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  .tab-button {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: white;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #666;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+
+    &:hover {
+      background-color: #f9f9f9;
+      color: #8b4513;
+    }
+
+    &.active {
+      color: #8b4513;
+      font-weight: 600;
+      border-bottom-color: #8b4513;
+      background-color: #fafafa;
+    }
+
+    &:not(:last-child) {
+      border-right: 1px solid #e0e0e0;
+    }
+  }
+}
+
+.tab-content {
+  padding: 2rem 0;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1.5rem 1rem;
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    .tagline {
+      font-size: 0.95rem;
+    }
+  }
+
+  .tab-navigation {
+    .tab-button {
+      padding: 0.875rem 1rem;
+      font-size: 0.9rem;
+    }
+  }
+
+  .tab-content {
+    padding: 1rem 0;
+  }
+}
