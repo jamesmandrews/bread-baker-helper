@@ -1,0 +1,65 @@
+name: Deploy to GitHub Pages
+
+# Deploys are gated behind the production branch: merge main -> production
+# when you want the live site to move. workflow_dispatch allows a manual
+# re-deploy without a new commit.
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 24.15 is the Angular CLI minimum on the v24 line.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.15'
+          cache: npm
+
+      # npm ci installs strictly from the lockfile, which also avoids the
+      # peer-resolution crash a from-scratch `npm install` hits on older npm.
+      - run: npm ci
+
+      - run: npm test
+
+      # The site serves from https://<user>.github.io/bread-baker-helper/, so
+      # the base href is the repository name -- which is deliberately not the
+      # Angular project name (bread-helper). src/index.html keeps "/" so local
+      # dev is unaffected.
+      - run: npm run build -- --base-href /bread-baker-helper/
+
+      # GitHub Pages serves static files and knows nothing about client-side
+      # routes, so a deep link or refresh 404s. Serving index.html as the 404
+      # page hands those URLs back to Angular. No-op until app.routes.ts has
+      # real routes in it.
+      - run: cp dist/bread-helper/browser/index.html dist/bread-helper/browser/404.html
+
+      - uses: actions/configure-pages@v5
+
+      # Angular 17+ nests the deployable output under browser/.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/bread-helper/browser
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
