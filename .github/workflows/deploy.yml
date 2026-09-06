@@ -20,6 +20,11 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # workflow_dispatch can be fired from any branch in the UI. The
+    # github-pages environment would reject a deploy from anywhere but
+    # production anyway, but only after a full build has run. Refuse here so
+    # a mistaken dispatch costs nothing.
+    if: github.ref == 'refs/heads/production'
     steps:
       - uses: actions/checkout@v4
 
