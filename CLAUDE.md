@@ -35,9 +35,17 @@ without adding `angular-eslint` first.
 Both of these look like project breakage but are environment-level:
 
 - **Clean `npm install` fails** on npm 10.8.2 with `Cannot read properties of
-  null (reading 'edgesOut')` while resolving Vitest's peer set. Use
-  `npm install --legacy-peer-deps`. A plain `npm install` works fine once a
-  lockfile exists, so this only bites on a fresh clone or in CI.
+  null (reading 'edgesOut')` while resolving Vitest's peer set. Current npm
+  resolves it fine, so the fix is `npx npm@latest install`, not
+  `--legacy-peer-deps`.
+
+  **Do not regenerate the lockfile with `--legacy-peer-deps`.** It produces a
+  lockfile missing optional platform packages (`@emnapi/*` and other
+  Linux/wasm variants that a macOS install never touches). Everything works
+  locally and then `npm ci` fails in CI with `npm error Missing: @emnapi/...
+  from lock file`. If that happens, rebuild the lockfile with
+  `npx npm@latest install --package-lock-only` and verify with
+  `npx npm@latest ci` before pushing.
 - **`ng update --name <schematic>` refuses to run.** Node 24.13.0 is below the
   Angular CLI minimum (v22.22.3 / v24.15.0 / v26), and `ng update` fetches the
   newest CLI before running. The pinned CLI itself works. Apply optional
