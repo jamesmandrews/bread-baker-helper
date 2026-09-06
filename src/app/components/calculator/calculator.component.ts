@@ -72,23 +72,29 @@ export class CalculatorComponent {
   }
 
   onWeightChange(event: { id: string, weight: number }): void {
+    const target = this.ingredients().find(ing => ing.id === event.id);
+    if (!target) return;
+
+    // Flour is the 100% base, so editing a flour weight rescales the whole
+    // recipe rather than just changing one row. Solve for the flour base that
+    // puts this row at the requested weight while keeping its percentage, so
+    // recipes with several flours stay in proportion.
+    if (target.isFlour && target.percentage > 0) {
+      this.totalFlourWeight.set(
+        this.calcService.calculateFlourWeightFromPart(event.weight, target.percentage)
+      );
+      this.recalculateAllWeights();
+      return;
+    }
+
     this.ingredients.update(ings =>
       ings.map(ing => {
-        if (ing.id === event.id) {
-          if (ing.isFlour) {
-            // If flour weight changed, update total flour weight
-            this.totalFlourWeight.set(event.weight);
-            this.recalculateAllWeights();
-            return { ...ing, weight: event.weight };
-          } else {
-            const percentage = this.calcService.calculatePercentageFromWeight(
-              event.weight,
-              this.totalFlourWeight()
-            );
-            return { ...ing, weight: event.weight, percentage };
-          }
-        }
-        return ing;
+        if (ing.id !== event.id) return ing;
+        const percentage = this.calcService.calculatePercentageFromWeight(
+          event.weight,
+          this.totalFlourWeight()
+        );
+        return { ...ing, weight: event.weight, percentage };
       })
     );
   }

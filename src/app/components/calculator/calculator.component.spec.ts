@@ -63,6 +63,42 @@ describe('CalculatorComponent (zoneless reactivity)', () => {
     expect(summary()).toContain('85');
   });
 
+  describe('editing a flour weight', () => {
+    it('rescales every other ingredient', async () => {
+      await type(inputIn(0, 'ingredient-weight'), '2000');
+
+      // Flour is the 100% base, so doubling it doubles everything else.
+      expect(inputIn(1, 'ingredient-weight').value).toBe('1400'); // water 70%
+      expect(inputIn(2, 'ingredient-weight').value).toBe('40'); // salt 2%
+      expect(inputIn(3, 'ingredient-weight').value).toBe('20'); // yeast 1%
+    });
+
+    it('leaves the percentages alone', async () => {
+      await type(inputIn(0, 'ingredient-weight'), '2000');
+
+      expect(inputIn(0, 'ingredient-percentage').value).toBe('100');
+      expect(inputIn(1, 'ingredient-percentage').value).toBe('70');
+    });
+
+    it('keeps multi-flour recipes in proportion', async () => {
+      const select = (fixture.nativeElement as HTMLElement).querySelector<HTMLSelectElement>('select')!;
+      select.value = 'Whole Wheat Bread';
+      select.dispatchEvent(new Event('change'));
+      await fixture.whenStable();
+
+      // Bread Flour and Whole Wheat Flour are 50% each of a 1000 g base.
+      expect(inputIn(0, 'ingredient-weight').value).toBe('500');
+      expect(inputIn(1, 'ingredient-weight').value).toBe('500');
+
+      // Pushing one flour to 600 g implies a 1200 g base, not a 600 g one.
+      await type(inputIn(0, 'ingredient-weight'), '600');
+
+      expect(inputIn(1, 'ingredient-weight').value).toBe('600');
+      expect(inputIn(2, 'ingredient-weight').value).toBe('864'); // water 72%
+      expect(inputIn(0, 'ingredient-percentage').value).toBe('50');
+    });
+  });
+
   it('adds and removes ingredient rows', async () => {
     (fixture.nativeElement as HTMLElement)
       .querySelector<HTMLButtonElement>('.add-ingredient-btn')!

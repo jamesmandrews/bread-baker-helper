@@ -61,6 +61,16 @@ export class CalculationService {
   }
 
   /**
+   * Calculate the total flour weight (the 100% base) implied by one flour
+   * weighing `weight` at `percentage` of that base.
+   * Formula: base = weight / (percentage / 100)
+   */
+  calculateFlourWeightFromPart(weight: number, percentage: number): number {
+    if (percentage <= 0) return 0;
+    return Math.round((weight * 100) / percentage * 10) / 10;
+  }
+
+  /**
    * Calculate flour weight needed to achieve a target total dough weight
    * Formula: flourWeight = targetWeight / (totalPercentage / 100)
    */

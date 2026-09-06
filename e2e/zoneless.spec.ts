@@ -43,12 +43,7 @@ test.describe('Bread Helper — zoneless reactivity', () => {
     expect(errors).toEqual([]);
   });
 
-  // KNOWN BUG (pre-dates the Angular upgrade): CalculatorComponent.onWeightChange
-  // calls totalFlourWeight.set() and recalculateAllWeights() from *inside* an
-  // ingredients.update() callback. The inner write lands first, then the outer
-  // update overwrites it with an array mapped from the stale value, so the other
-  // ingredients keep their old weights. Remove test.fail() once that is fixed.
-  test.fail('flour weight rescales the whole recipe', async ({ page }) => {
+  test('flour weight rescales the whole recipe', async ({ page }) => {
     await page.goto('/');
 
     const flourRow = page.locator('app-ingredient-row').nth(0);
