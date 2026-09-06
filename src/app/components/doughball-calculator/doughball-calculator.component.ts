@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DoughballService } from '../../services/doughball.service';
 import { PizzaPan, DoughballPreset } from '../../models/doughball.model';
@@ -10,6 +10,8 @@ import { PizzaPan, DoughballPreset } from '../../models/doughball.model';
     styleUrl: './doughball-calculator.component.scss'
 })
 export class DoughballCalculatorComponent {
+  private readonly doughballService = inject(DoughballService);
+
   // Signals for reactive state
   pans = signal<PizzaPan[]>([
     { id: '1', diameter: 12, doughWeight: 0 }
@@ -37,7 +39,7 @@ export class DoughballCalculatorComponent {
     return calculation.totalArea;
   });
 
-  constructor(private doughballService: DoughballService) {
+  constructor() {
     this.presets = this.doughballService.getPresets();
     this.updateAllPanWeights();
   }
@@ -101,10 +103,5 @@ export class DoughballCalculatorComponent {
   // Get individual pan area
   getPanArea(diameter: number): number {
     return Math.round(this.doughballService.calculatePanArea(diameter) * 10) / 10;
-  }
-
-  // Helper to track pans by id in templates
-  trackByPanId(index: number, pan: PizzaPan): string {
-    return pan.id;
   }
 }

@@ -2,20 +2,20 @@
   <input
     type="text"
     class="ingredient-name"
-    [value]="ingredient.name"
+    [value]="ingredient().name"
     (input)="onNameChange($any($event.target).value)"
-    [readonly]="isFlourRow"
-    [class.readonly]="isFlourRow"
+    [readonly]="isFlourRow()"
+    [class.readonly]="isFlourRow()"
     />
 
   <input
     type="number"
     class="ingredient-percentage"
-    [value]="ingredient.percentage"
+    [value]="ingredient().percentage"
     (input)="onPercentageChange($any($event.target).value)"
-    [readonly]="isFlourRow || !isPercentageEditable"
-    [class.readonly]="isFlourRow || !isPercentageEditable"
-    [class.locked]="!isPercentageEditable && !isFlourRow"
+    [readonly]="isFlourRow() || !isPercentageEditable()"
+    [class.readonly]="isFlourRow() || !isPercentageEditable()"
+    [class.locked]="!isPercentageEditable() && !isFlourRow()"
     min="0"
     step="0.1"
     />
@@ -24,14 +24,14 @@
   <input
     type="number"
     class="ingredient-weight"
-    [value]="ingredient.weight"
+    [value]="ingredient().weight"
     (input)="onWeightChange($any($event.target).value)"
     min="0"
     step="1"
     />
   <span class="unit">g</span>
 
-  @if (!isFlourRow) {
+  @if (!isFlourRow()) {
     <button
       class="remove-btn"
       (click)="onRemove()"

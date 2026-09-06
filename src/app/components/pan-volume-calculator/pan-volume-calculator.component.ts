@@ -1,4 +1,4 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PanVolumeService } from '../../services/pan-volume.service';
 import { Pan, DoughDensityPreset } from '../../models/pan-volume.model';
@@ -10,6 +10,8 @@ import { Pan, DoughDensityPreset } from '../../models/pan-volume.model';
     styleUrl: './pan-volume-calculator.component.scss'
 })
 export class PanVolumeCalculatorComponent {
+  private readonly panVolumeService = inject(PanVolumeService);
+
   // Signals for reactive state
   pans = signal<Pan[]>([
     { id: '1', length: 30, width: 10, height: 10, volume: 0, doughWeight: 0 }
@@ -41,7 +43,7 @@ export class PanVolumeCalculatorComponent {
     return this.panVolumeService.volumeToLiters(this.totalVolume());
   });
 
-  constructor(private panVolumeService: PanVolumeService) {
+  constructor() {
     this.presets = this.panVolumeService.getPresets();
     this.updateAllPanWeights();
   }
@@ -107,10 +109,5 @@ export class PanVolumeCalculatorComponent {
       doughWeight: this.panVolumeService.calculateDoughWeight(pan.length, pan.width, pan.height, this.gramsPerCubicCm())
     }));
     this.pans.set(updatedPans);
-  }
-
-  // Helper to track pans by id in templates
-  trackByPanId(index: number, pan: Pan): string {
-    return pan.id;
   }
 }

@@ -45,7 +45,7 @@
   <div class="pans-section">
     <h3>Pans</h3>
 
-    @for (pan of pans(); track trackByPanId($index, pan)) {
+    @for (pan of pans(); track pan.id) {
       <div class="pan-row">
         <div class="pan-info">
           <label class="pan-label">Pan {{ pan.id }} Dimensions (cm):</label>

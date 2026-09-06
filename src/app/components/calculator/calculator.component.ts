@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { IngredientRowComponent } from '../ingredient-row/ingredient-row.component';
 import { Ingredient, RecipeTemplate } from '../../models/ingredient.model';
@@ -12,6 +12,9 @@ import { RecipePresetService } from '../../services/recipe-preset.service';
     styleUrl: './calculator.component.scss'
 })
 export class CalculatorComponent {
+  private readonly calcService = inject(CalculationService);
+  private readonly presetService = inject(RecipePresetService);
+
   totalFlourWeight = signal(1000);
   useDoughBallMode = signal(false); // Toggle between flour weight mode and dough ball mode
   targetDoughBallWeight = signal<number>(1730); // Target total dough weight
@@ -38,10 +41,7 @@ export class CalculatorComponent {
     return this.calcService.validateHydration(this.hydration());
   });
 
-  constructor(
-    private calcService: CalculationService,
-    private presetService: RecipePresetService
-  ) {
+  constructor() {
     this.presets = this.presetService.getPresets();
   }
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Ingredient } from '../../models/ingredient.model';
 
@@ -9,29 +9,31 @@ import { Ingredient } from '../../models/ingredient.model';
     styleUrl: './ingredient-row.component.scss'
 })
 export class IngredientRowComponent {
-  @Input() ingredient!: Ingredient;
-  @Input() isFlourRow: boolean = false;
-  @Input() isPercentageEditable: boolean = true; // Allow locking percentage in certain modes
-  @Output() percentageChange = new EventEmitter<{ id: string, percentage: number }>();
-  @Output() weightChange = new EventEmitter<{ id: string, weight: number }>();
-  @Output() nameChange = new EventEmitter<{ id: string, name: string }>();
-  @Output() remove = new EventEmitter<string>();
+  readonly ingredient = input.required<Ingredient>();
+  readonly isFlourRow = input(false);
+  // Allow locking percentage in certain modes
+  readonly isPercentageEditable = input(true);
+
+  readonly percentageChange = output<{ id: string, percentage: number }>();
+  readonly weightChange = output<{ id: string, weight: number }>();
+  readonly nameChange = output<{ id: string, name: string }>();
+  readonly remove = output<string>();
 
   onPercentageChange(value: string): void {
     const percentage = parseFloat(value) || 0;
-    this.percentageChange.emit({ id: this.ingredient.id, percentage });
+    this.percentageChange.emit({ id: this.ingredient().id, percentage });
   }
 
   onWeightChange(value: string): void {
     const weight = parseFloat(value) || 0;
-    this.weightChange.emit({ id: this.ingredient.id, weight });
+    this.weightChange.emit({ id: this.ingredient().id, weight });
   }
 
   onNameChange(value: string): void {
-    this.nameChange.emit({ id: this.ingredient.id, name: value });
+    this.nameChange.emit({ id: this.ingredient().id, name: value });
   }
 
   onRemove(): void {
-    this.remove.emit(this.ingredient.id);
+    this.remove.emit(this.ingredient().id);
   }
 }
