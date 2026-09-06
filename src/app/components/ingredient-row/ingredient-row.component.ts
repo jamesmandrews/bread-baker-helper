@@ -4,11 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { Ingredient } from '../../models/ingredient.model';
 
 @Component({
-  selector: 'app-ingredient-row',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './ingredient-row.component.html',
-  styleUrl: './ingredient-row.component.scss'
+    selector: 'app-ingredient-row',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './ingredient-row.component.html',
+    styleUrl: './ingredient-row.component.scss'
 })
 export class IngredientRowComponent {
   @Input() ingredient!: Ingredient;

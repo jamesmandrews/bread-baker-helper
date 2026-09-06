@@ -5,11 +5,10 @@ import { DoughballService } from '../../services/doughball.service';
 import { PizzaPan, DoughballPreset } from '../../models/doughball.model';
 
 @Component({
-  selector: 'app-doughball-calculator',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './doughball-calculator.component.html',
-  styleUrl: './doughball-calculator.component.scss'
+    selector: 'app-doughball-calculator',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './doughball-calculator.component.html',
+    styleUrl: './doughball-calculator.component.scss'
 })
 export class DoughballCalculatorComponent {
   // Signals for reactive state

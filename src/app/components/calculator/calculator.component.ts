@@ -7,11 +7,10 @@ import { CalculationService } from '../../services/calculation.service';
 import { RecipePresetService } from '../../services/recipe-preset.service';
 
 @Component({
-  selector: 'app-calculator',
-  standalone: true,
-  imports: [CommonModule, FormsModule, IngredientRowComponent],
-  templateUrl: './calculator.component.html',
-  styleUrl: './calculator.component.scss'
+    selector: 'app-calculator',
+    imports: [CommonModule, FormsModule, IngredientRowComponent],
+    templateUrl: './calculator.component.html',
+    styleUrl: './calculator.component.scss'
 })
 export class CalculatorComponent {
   totalFlourWeight = signal(1000);

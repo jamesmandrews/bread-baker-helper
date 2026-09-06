@@ -5,11 +5,10 @@ import { PanVolumeService } from '../../services/pan-volume.service';
 import { Pan, DoughDensityPreset } from '../../models/pan-volume.model';
 
 @Component({
-  selector: 'app-pan-volume-calculator',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './pan-volume-calculator.component.html',
-  styleUrl: './pan-volume-calculator.component.scss'
+    selector: 'app-pan-volume-calculator',
+    imports: [CommonModule, FormsModule],
+    templateUrl: './pan-volume-calculator.component.html',
+    styleUrl: './pan-volume-calculator.component.scss'
 })
 export class PanVolumeCalculatorComponent {
   // Signals for reactive state
