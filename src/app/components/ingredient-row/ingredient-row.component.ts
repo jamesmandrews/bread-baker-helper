@@ -1,11 +1,10 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Ingredient } from '../../models/ingredient.model';
 
 @Component({
     selector: 'app-ingredient-row',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './ingredient-row.component.html',
     styleUrl: './ingredient-row.component.scss'
 })

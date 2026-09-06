@@ -1,12 +1,11 @@
 import { Component, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PanVolumeService } from '../../services/pan-volume.service';
 import { Pan, DoughDensityPreset } from '../../models/pan-volume.model';
 
 @Component({
     selector: 'app-pan-volume-calculator',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './pan-volume-calculator.component.html',
     styleUrl: './pan-volume-calculator.component.scss'
 })

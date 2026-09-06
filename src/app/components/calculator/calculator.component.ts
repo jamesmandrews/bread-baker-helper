@@ -1,5 +1,4 @@
 import { Component, computed, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IngredientRowComponent } from '../ingredient-row/ingredient-row.component';
 import { Ingredient, RecipeTemplate } from '../../models/ingredient.model';
@@ -8,7 +7,7 @@ import { RecipePresetService } from '../../services/recipe-preset.service';
 
 @Component({
     selector: 'app-calculator',
-    imports: [CommonModule, FormsModule, IngredientRowComponent],
+    imports: [FormsModule, IngredientRowComponent],
     templateUrl: './calculator.component.html',
     styleUrl: './calculator.component.scss'
 })

@@ -1,12 +1,11 @@
 import { Component, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DoughballService } from '../../services/doughball.service';
 import { PizzaPan, DoughballPreset } from '../../models/doughball.model';
 
 @Component({
     selector: 'app-doughball-calculator',
-    imports: [CommonModule, FormsModule],
+    imports: [FormsModule],
     templateUrl: './doughball-calculator.component.html',
     styleUrl: './doughball-calculator.component.scss'
 })
