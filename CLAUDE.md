@@ -1,180 +1,166 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code (claude.ai/code) working in this repository.
 
 ## Project Overview
 
-**Bread Helper** is an Angular 18 application that provides bread baking assistance tools. The current implementation features a Baker's Percentage Calculator that helps bakers convert between ingredient percentages and weights, scale recipes, and understand proper bread-making ratios.
+**Bread Helper** is an Angular application with three baking calculators, each
+a tab in a single page:
+
+1. **Baker's Percentage** — ingredient percentages ↔ weights, presets, hydration
+   and salt warnings
+2. **Pizza Doughball** — dough weight from circular pan area (g/in²)
+3. **Pan Volume** — dough weight from rectangular pan volume (g/cm³)
+
+Tabs are switched by the `activeTab` signal in `app.component.ts`, not by the
+router. See [Router](#router) below.
+
+## Commands
+
+The Angular app is at the **repository root** — there is no subdirectory, so no
+`cd` is needed.
+
+```bash
+npm start          # dev server on http://localhost:4200
+npm run build      # production build -> dist/bread-helper/
+npm test           # unit tests (Vitest, headless, exits when done)
+npm run e2e        # end-to-end tests (Playwright, Chromium)
+```
+
+There is no lint setup — `ng lint` will fail. Don't document or invoke it
+without adding `angular-eslint` first.
+
+## Environment gotchas
+
+Both of these look like project breakage but are environment-level:
+
+- **Clean `npm install` fails** on npm 10.8.2 with `Cannot read properties of
+  null (reading 'edgesOut')` while resolving Vitest's peer set. Use
+  `npm install --legacy-peer-deps`. A plain `npm install` works fine once a
+  lockfile exists, so this only bites on a fresh clone or in CI.
+- **`ng update --name <schematic>` refuses to run.** Node 24.13.0 is below the
+  Angular CLI minimum (v22.22.3 / v24.15.0 / v26), and `ng update` fetches the
+  newest CLI before running. The pinned CLI itself works. Apply optional
+  migrations by hand.
+
+Upgrading npm and Node clears both.
 
 ## Technology Stack
 
-- **Angular 18.2.12** - Latest Angular with standalone components
-- **TypeScript** - Type-safe development
-- **SCSS** - Styling with Sass
-- **Signals** - Modern Angular reactivity system (instead of RxJS Observables where appropriate)
-
-## Development Commands
-
-### Start Development Server
-```bash
-cd bread-helper
-ng serve
-```
-Visit `http://localhost:4200`
-
-### Build for Production
-```bash
-cd bread-helper
-ng build
-```
-Production files output to `dist/bread-helper/`
-
-### Run Tests
-```bash
-cd bread-helper
-ng test
-```
-
-### Run Linter
-```bash
-cd bread-helper
-ng lint
-```
-
-### Generate Components/Services
-```bash
-# Generate a new component
-ng generate component components/my-component --standalone
-
-# Generate a new service
-ng generate service services/my-service
-```
+- **Angular 21.2** — standalone components (the default; no `standalone: true`
+  flag), signals, block control flow
+- **Zoneless change detection** — `provideZonelessChangeDetection()`; zone.js is
+  not a dependency
+- **Vitest** for unit tests, **Playwright** for e2e
+- **TypeScript 5.9**, strict mode, `strictTemplates`
+- **SCSS**
 
 ## Architecture
 
-### Project Structure
-
 ```
-bread-helper/
-├── src/
-│   ├── app/
-│   │   ├── components/          # UI Components
-│   │   │   ├── calculator/      # Main calculator container (smart component)
-│   │   │   └── ingredient-row/  # Individual ingredient input (dumb component)
-│   │   ├── models/              # TypeScript interfaces and types
-│   │   │   └── ingredient.model.ts
-│   │   ├── services/            # Business logic services
-│   │   │   ├── calculation.service.ts
-│   │   │   └── recipe-preset.service.ts
-│   │   ├── app.component.*      # Root component
-│   │   ├── app.config.ts        # App configuration
-│   │   └── app.routes.ts        # Routing configuration
-│   ├── styles.scss              # Global styles
-│   └── index.html
+src/app/
+├── components/
+│   ├── calculator/               # Baker's percentage (smart)
+│   ├── ingredient-row/           # One ingredient input (presentational)
+│   ├── doughball-calculator/     # Pizza pan area (smart)
+│   └── pan-volume-calculator/    # Loaf pan volume (smart)
+├── models/                       # ingredient, doughball, pan-volume
+├── services/                     # calculation, recipe-preset, doughball, pan-volume
+├── app.component.*               # Shell + tab navigation
+├── app.config.ts
+└── app.routes.ts                 # empty; see Router
+e2e/                              # Playwright specs
 ```
 
-### Key Architectural Patterns
+Services are `providedIn: 'root'` and hold the arithmetic and the preset data.
+Components hold signal state and delegate every calculation to a service.
 
-#### 1. Standalone Components (Angular 18)
-- All components use the standalone API (`standalone: true`)
-- No NgModules required
-- Direct imports in component metadata
+### Conventions
 
-#### 2. Signals-Based Reactivity
-The calculator uses Angular Signals for reactive state management:
-- `signal()` - Writable state
-- `computed()` - Derived state (automatically updates when dependencies change)
-- Example: `totalWeight = computed(() => this.calcService.calculateTotalWeight(this.ingredients()))`
+- **`inject()`**, not constructor parameter injection
+- **`input()` / `output()`** signal APIs, not `@Input()` / `@Output()`
+  decorators — see `ingredient-row.component.ts` for the reference shape
+- **`@if` / `@for`** with a direct `track` expression (`track pan.id`), never a
+  `trackBy` method
+- **`computed()`** for anything derived. Do not store derived values in signal
+  state and hand-resync them; the pan calculators still do this (see [Known
+  issues](#known-issues)) and are not the pattern to copy
+- Weights and percentages round to 1 decimal place
 
-#### 3. Smart vs Dumb Components
-- **Smart Components** (`calculator.component.ts`): Manage state, business logic, service injection
-- **Dumb Components** (`ingredient-row.component.ts`): Pure presentation, receive data via `@Input()`, emit events via `@Output()`
+### Signal writes
 
-#### 4. Service Layer
-Services are injectable and provide reusable business logic:
-- `CalculationService`: Mathematical calculations (percentages, weights, validation)
-- `RecipePresetService`: Recipe templates and presets
+**Never write to a signal from inside another signal's `update()` callback.**
+`update()` evaluates its callback and *then* sets, so a nested write lands
+first and is immediately overwritten by the outer update — silently, using
+stale data. This caused a real bug where editing the flour weight left every
+other ingredient unchanged. Branch and read first, then write once.
 
-### Baker's Percentage Logic
+## Baker's percentage model
 
-Baker's percentages are fundamental to bread baking:
-- **Flour is always 100%** (the base)
-- All other ingredients are expressed as percentages of total flour weight
-- Example: 70% hydration = 700g water per 1000g flour
+Flour is the 100% base; every other ingredient is a percentage of total flour
+weight. 70% hydration means 700 g water per 1000 g flour.
 
-The calculator supports bidirectional updates:
-1. Change percentage → weight recalculates
-2. Change weight → percentage recalculates
-3. Change total flour → all weights recalculate
+`CalculatorComponent` supports three directions of edit:
 
-### Component Communication Pattern
+- percentage changes → weight recalculates
+- weight changes → percentage recalculates
+- total flour weight changes → all weights recalculate
 
-```
-CalculatorComponent (Smart)
-    ├── Manages: totalFlourWeight (signal)
-    ├── Manages: ingredients (signal)
-    ├── Computes: totalWeight, hydration, warnings
-    └── Contains: IngredientRowComponent (Dumb) × N
-            ├── Receives: ingredient data via @Input
-            └── Emits: changes via @Output
-                ├── percentageChange
-                ├── weightChange
-                ├── nameChange
-                └── remove
-```
+Editing a **flour** row's weight is special: it rescales the whole recipe.
+`calculateFlourWeightFromPart()` solves for the base the edited row implies
+(`weight / (percentage / 100)`) rather than assuming the row *is* the base, so
+recipes with more than one flour stay in proportion.
 
-## Data Models
+There is also a **dough ball mode** that inverts the calculation: you give a
+target total dough weight and the flour weight is solved backwards from the sum
+of all percentages.
 
-### Core Interfaces (`models/ingredient.model.ts`)
+## Router
 
-```typescript
-interface Ingredient {
-  id: string;              // Unique identifier
-  name: string;            // Ingredient name
-  percentage: number;      // Baker's percentage
-  weight: number;          // Actual weight in grams
-  isFlour?: boolean;       // Flag for flour (always 100%)
-}
+`app.routes.ts` is empty, but `provideRouter()`, `RouterOutlet` and
+`<router-outlet />` are all still wired up. This is **deliberate scaffolding**
+— the tabs are intended to become real routes later. Leave it in place.
 
-interface RecipeTemplate {
-  name: string;            // Template name
-  description: string;     // Template description
-  ingredients: Omit<Ingredient, 'id' | 'weight'>[];
-}
-```
+Until then: there is no URL per tab, no deep linking, and a refresh always
+lands on Baker's Percentage.
 
-## Recipe Presets
+## Testing
 
-The app includes 5 built-in recipe templates:
-1. Basic White Bread (67% hydration)
-2. Sourdough (75% hydration, with levain)
-3. French Baguette (70% hydration)
-4. Pizza Dough (65% hydration, with olive oil)
-5. Whole Wheat Bread (72% hydration, mixed flours)
+Unit tests are Vitest but use the Jasmine-compatible API (`describe`, `it`,
+`expect().toBe()`), so specs read the same as before the runner swap.
 
-## Styling Conventions
+Because the app is zoneless, a broken handler renders a **stale value** rather
+than throwing. `should create` smoke tests cannot catch that. Tests that matter
+here drive real DOM events and assert on rendered output:
 
-- **Primary Color**: `#8b4513` (saddle brown - bread-themed)
-- **Accent Colors**: Warnings (yellow), Info (blue)
-- **Responsive**: Works on mobile and desktop
-- **Grid Layout**: Ingredient rows use CSS Grid for alignment
+- `calculator.component.spec.ts` — child DOM event → `output()` → parent signal
+  → `computed()` → sibling re-render
+- `e2e/zoneless.spec.ts` — the same paths in a real browser, across all three
+  calculators, asserting no console errors
 
-## Future Enhancements (Planned Features)
+Await `fixture.whenStable()` after dispatching an event; there is no zone to
+flush.
 
-The following features were planned but not yet implemented:
-- Sourdough starter maintenance tracker
-- Baking schedule/timer builder
-- Temperature-adjusted timing calculations
-- Dough temperature calculator
-- Unit conversion (metric ↔ imperial)
-- Save custom recipes to localStorage
-- Print/export recipe cards
-- Additional calculator tools (scaling, hydration-only, etc.)
+## Known issues
 
-## Development Notes
+Raised in review and deliberately deferred — don't treat these as settled:
 
-- Uses Angular 18's control flow syntax (`@for`, `@if`) instead of `*ngFor`, `*ngIf`
-- Prefer signals over RxJS for simple state management
-- All services use `providedIn: 'root'` for tree-shakeable providers
-- Components follow single responsibility principle
-- Mathematical calculations are rounded to 1 decimal place for precision
+- **Pan volume densities are likely wrong.** The 0.55–0.70 g/cm³ presets look
+  like raw dough density rather than a pan-fill ratio; loaf-pan practice is
+  nearer 0.35–0.45. The default pan reports ~1800 g where ~1100–1300 g is
+  expected. Needs checking against a real pan — this is a domain judgement, not
+  a code bug.
+- **Levain contributes nothing to hydration.** It is flagged as neither flour
+  nor water, so the shipped Sourdough preset understates true hydration.
+- **`calculateHydration` uses `find`**, so a recipe split across two "Water"
+  rows (autolyse + bassinage) only counts the first. All flours *are* summed.
+- **The pan calculators duplicate each other** (~90%) and store derived
+  `volume` / `doughWeight` inside signal state, resyncing by hand.
+- **No input validation.** `parseFloat(v) || 0` accepts negatives throughout.
+- **IDs use `Date.now().toString()`**, which collides on rapid adds.
+- **Nothing persists.** A reload loses the recipe.
+
+## Not built yet
+
+Sourdough starter tracker, baking schedule/timer, dough temperature calculator,
+unit conversion (metric ↔ imperial), saved recipes, print/export.
