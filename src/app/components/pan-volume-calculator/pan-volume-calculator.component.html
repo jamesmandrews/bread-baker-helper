@@ -26,7 +26,7 @@
     <aside class="controls panel">
       <div class="controls-body">
         <div class="field">
-          <span class="label">Crumb</span>
+          <span class="label">Loaf style</span>
           <div class="preset-buttons">
             @for (preset of presets; track preset.name) {
               <button
@@ -36,30 +36,31 @@
                 [attr.aria-pressed]="selectedPreset() === preset.name"
                 (click)="selectPreset(preset)">
                 <strong>{{ preset.name }}</strong>
-                <span class="num">{{ preset.gramsPerCubicCm }}</span>
+                <span class="num">{{ preset.percentOfCapacity }}%</span>
               </button>
             }
           </div>
         </div>
 
         <div class="field">
-          <label class="label" for="gramsPerCubicCm">Dough density</label>
+          <label class="label" for="panFill">Pan fill</label>
           <div class="suffixed">
             <input
               type="number"
-              id="gramsPerCubicCm"
-              [value]="gramsPerCubicCm()"
-              (input)="updateGramsPerCubicCm(+$any($event.target).value)"
-              min="0.1"
-              max="1.5"
-              step="0.01" />
-            <span class="suffix">g/cm³</span>
+              id="panFill"
+              [value]="percentOfCapacity()"
+              (input)="updatePercentOfCapacity(+$any($event.target).value)"
+              min="20"
+              max="80"
+              step="1" />
+            <span class="suffix">%</span>
           </div>
           <p class="hint">
+            <span class="equiv">= <span class="num">{{ gramsPerCubicCm() }}</span> g/cm³</span>
             @if (selectedPreset() !== 'Custom') {
-              Using the {{ selectedPreset() }} preset.
+              · {{ selectedPreset() }} preset
             } @else {
-              Custom value.
+              · custom
             }
           </p>
         </div>

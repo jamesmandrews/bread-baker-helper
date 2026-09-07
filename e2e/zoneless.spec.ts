@@ -107,11 +107,11 @@ test.describe('Bread Helper — zoneless reactivity', () => {
     const panRow = page.locator('.pan-row').first();
     const inputs = panRow.locator('input[type="number"]');
 
-    // 30x10x10 = 3000 cm^3 at the Standard default (0.60 g/cm^3) -> 1800 g
-    await expect(panRow).toContainText('1800');
+    // 30x10x10 = 3000 cm^3 at the Standard default (45% fill) -> 1350 g
+    await expect(panRow).toContainText('1350');
 
     await inputs.nth(0).fill('20');
-    // 20x10x10 = 2000 cm^3 -> 1200 g
-    await expect(panRow).toContainText('1200');
+    // 20x10x10 = 2000 cm^3 -> 900 g
+    await expect(panRow).toContainText('900');
   });
 });

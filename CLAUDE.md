@@ -123,6 +123,27 @@ There is also a **dough ball mode** that inverts the calculation: you give a
 target total dough weight and the flour weight is solved backwards from the sum
 of all percentages.
 
+## Pan fill, not dough density
+
+The pan volume calculator originally multiplied pan volume by a "dough density"
+of 0.55–0.70 g/cm³, which conflated two different quantities. Dough does not
+fill a pan solid — it goes in at roughly half and rises the rest of the way, so
+what matters is a **fill ratio**, not a density.
+
+Published practice is 40–45% of pan capacity for a standard sandwich loaf and
+50–55% for enriched or fuller loaves, so the old presets were about one category
+high across the board (the default pan reported 1800 g where ~1350 g is right).
+
+The control is now a percentage, with the g/cm³ equivalent shown beside it for
+cross-checking against sources that use those units. A pan's capacity in cm³ is
+the same number as the grams of water it holds to the brim, so the dimension
+inputs and the water test give the same figure.
+
+Sources disagree at the top of the range, so `calculatePercentFromWeight()`
+exists to work backwards from a dough weight already known to fit a given pan.
+`pan-volume.service.spec.ts` pins the presets — these are oven-facing constants,
+not implementation details.
+
 ## Router
 
 `app.routes.ts` is empty, but `provideRouter()`, `RouterOutlet` and
@@ -153,11 +174,6 @@ flush.
 
 Raised in review and deliberately deferred — don't treat these as settled:
 
-- **Pan volume densities are likely wrong.** The 0.55–0.70 g/cm³ presets look
-  like raw dough density rather than a pan-fill ratio; loaf-pan practice is
-  nearer 0.35–0.45. The default pan reports ~1800 g where ~1100–1300 g is
-  expected. Needs checking against a real pan — this is a domain judgement, not
-  a code bug.
 - **Levain contributes nothing to hydration.** It is flagged as neither flour
   nor water, so the shipped Sourdough preset understates true hydration.
 - **`calculateHydration` uses `find`**, so a recipe split across two "Water"

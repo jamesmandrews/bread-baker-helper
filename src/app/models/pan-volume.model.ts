@@ -8,13 +8,13 @@ export interface Pan {
 }
 
 export interface PanVolumeCalculation {
-  gramsPerCubicCm: number;  // Grams of dough per cubic cm
+  percentOfCapacity: number; // Share of the pan's volume filled with raw dough
   totalVolume: number;       // Total volume of all pans in cubic cm
   totalDoughWeight: number;  // Total dough weight needed in grams
 }
 
-export interface DoughDensityPreset {
+export interface PanFillPreset {
   name: string;
   description: string;
-  gramsPerCubicCm: number;
+  percentOfCapacity: number;
 }

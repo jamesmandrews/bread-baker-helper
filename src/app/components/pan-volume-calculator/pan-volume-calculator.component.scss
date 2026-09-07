@@ -160,3 +160,9 @@
     gap: 8px;
   }
 }
+
+/* The percentage drives the maths; the g/cm3 equivalent is shown for
+   cross-checking against sources that state it that way. */
+.equiv {
+  color: var(--muted);
+}

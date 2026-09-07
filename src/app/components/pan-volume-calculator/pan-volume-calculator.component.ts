@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PanVolumeService } from '../../services/pan-volume.service';
-import { Pan, DoughDensityPreset } from '../../models/pan-volume.model';
+import { Pan, PanFillPreset } from '../../models/pan-volume.model';
 
 @Component({
     selector: 'app-pan-volume-calculator',
@@ -17,16 +17,20 @@ export class PanVolumeCalculatorComponent {
     { id: '1', length: 30, width: 10, height: 10, volume: 0, doughWeight: 0 }
   ]);
 
-  gramsPerCubicCm = signal<number>(0.60); // Default to standard density
+  /** Share of the pan's capacity filled with raw dough. */
+  percentOfCapacity = signal<number>(45); // Default to a standard sandwich loaf
   selectedPreset = signal<string>('Standard');
 
-  presets: DoughDensityPreset[];
+  presets: PanFillPreset[];
+
+  /** The same ratio in the units some baking sources state it in. */
+  gramsPerCubicCm = computed(() => this.panVolumeService.gramsPerCubicCm(this.percentOfCapacity()));
 
   // Computed values
   totalDoughWeight = computed(() => {
     const calculation = this.panVolumeService.calculateTotalDough(
       this.pans(),
-      this.gramsPerCubicCm()
+      this.percentOfCapacity()
     );
     return calculation.totalDoughWeight;
   });
@@ -34,7 +38,7 @@ export class PanVolumeCalculatorComponent {
   totalVolume = computed(() => {
     const calculation = this.panVolumeService.calculateTotalDough(
       this.pans(),
-      this.gramsPerCubicCm()
+      this.percentOfCapacity()
     );
     return calculation.totalVolume;
   });
@@ -57,7 +61,7 @@ export class PanVolumeCalculatorComponent {
       width: 10,
       height: 10,
       volume: this.panVolumeService.calculatePanVolume(30, 10, 10),
-      doughWeight: this.panVolumeService.calculateDoughWeight(30, 10, 10, this.gramsPerCubicCm())
+      doughWeight: this.panVolumeService.calculateDoughWeight(30, 10, 10, this.percentOfCapacity())
     };
     this.pans.set([...this.pans(), newPan]);
   }
@@ -79,7 +83,7 @@ export class PanVolumeCalculatorComponent {
           width,
           height,
           volume: this.panVolumeService.calculatePanVolume(length, width, height),
-          doughWeight: this.panVolumeService.calculateDoughWeight(length, width, height, this.gramsPerCubicCm())
+          doughWeight: this.panVolumeService.calculateDoughWeight(length, width, height, this.percentOfCapacity())
         };
       }
       return pan;
@@ -87,26 +91,26 @@ export class PanVolumeCalculatorComponent {
     this.pans.set(updatedPans);
   }
 
-  // Update grams per cubic cm (when manually changed)
-  updateGramsPerCubicCm(value: number): void {
-    this.gramsPerCubicCm.set(value);
+  // Update the fill percentage (when manually changed)
+  updatePercentOfCapacity(value: number): void {
+    this.percentOfCapacity.set(value);
     this.selectedPreset.set('Custom');
     this.updateAllPanWeights();
   }
 
   // Select a preset and update calculations
-  selectPreset(preset: DoughDensityPreset): void {
+  selectPreset(preset: PanFillPreset): void {
     this.selectedPreset.set(preset.name);
-    this.gramsPerCubicCm.set(preset.gramsPerCubicCm);
+    this.percentOfCapacity.set(preset.percentOfCapacity);
     this.updateAllPanWeights();
   }
 
-  // Update all pan weights and volumes when grams per cubic cm changes
+  // Update all pan weights and volumes when the fill percentage changes
   private updateAllPanWeights(): void {
     const updatedPans = this.pans().map(pan => ({
       ...pan,
       volume: this.panVolumeService.calculatePanVolume(pan.length, pan.width, pan.height),
-      doughWeight: this.panVolumeService.calculateDoughWeight(pan.length, pan.width, pan.height, this.gramsPerCubicCm())
+      doughWeight: this.panVolumeService.calculateDoughWeight(pan.length, pan.width, pan.height, this.percentOfCapacity())
     }));
     this.pans.set(updatedPans);
   }

@@ -1,37 +1,44 @@
 import { Injectable } from '@angular/core';
-import { DoughDensityPreset, Pan, PanVolumeCalculation } from '../models/pan-volume.model';
+import { PanFillPreset, Pan, PanVolumeCalculation } from '../models/pan-volume.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PanVolumeService {
 
-  // Common dough density presets
-  // Typical bread dough density ranges from 0.55-0.70 g/cm³
-  private presets: DoughDensityPreset[] = [
+  /**
+   * Dough for a loaf pan is a *fill ratio*, not a density: the dough goes in at
+   * roughly half the pan and rises to fill it. Baking guides state this as a
+   * percentage of the pan's water capacity, which is the same number as its
+   * volume in cm3 because 1 ml of water weighs 1 g.
+   *
+   * Published practice is 40-45% for a standard sandwich loaf and 50-55% for
+   * enriched or deliberately fuller loaves.
+   */
+  private presets: PanFillPreset[] = [
     {
       name: 'Light & Airy',
-      description: 'Soft sandwich bread, brioche',
-      gramsPerCubicCm: 0.55
+      description: 'Open crumb sandwich loaf',
+      percentOfCapacity: 40
     },
     {
       name: 'Standard',
-      description: 'Most bread recipes',
-      gramsPerCubicCm: 0.60
+      description: 'Most sandwich breads',
+      percentOfCapacity: 45
     },
     {
-      name: 'Dense',
-      description: 'Whole wheat, rye bread',
-      gramsPerCubicCm: 0.65
+      name: 'Enriched',
+      description: 'Brioche, milk bread, fuller loaf',
+      percentOfCapacity: 50
     },
     {
-      name: 'Very Dense',
-      description: 'Heavy whole grain loaves',
-      gramsPerCubicCm: 0.70
+      name: 'Full',
+      description: 'Dense whole grain, maximum fill',
+      percentOfCapacity: 55
     }
   ];
 
-  getPresets(): DoughDensityPreset[] {
+  getPresets(): PanFillPreset[] {
     return this.presets;
   }
 
@@ -45,41 +52,48 @@ export class PanVolumeService {
 
   /**
    * Calculate the dough weight for a single pan
-   * Formula: volume × density
+   * Formula: volume × (percent / 100)
    */
-  calculateDoughWeight(length: number, width: number, height: number, gramsPerCubicCm: number): number {
+  calculateDoughWeight(length: number, width: number, height: number, percentOfCapacity: number): number {
     const volume = this.calculatePanVolume(length, width, height);
-    return Math.round(volume * gramsPerCubicCm * 10) / 10; // Round to 1 decimal place
+    return Math.round(volume * (percentOfCapacity / 100) * 10) / 10;
   }
 
   /**
    * Calculate total dough needed for multiple pans
    */
-  calculateTotalDough(pans: Pan[], gramsPerCubicCm: number): PanVolumeCalculation {
+  calculateTotalDough(pans: Pan[], percentOfCapacity: number): PanVolumeCalculation {
     let totalVolume = 0;
     let totalDoughWeight = 0;
 
     pans.forEach(pan => {
-      const volume = this.calculatePanVolume(pan.length, pan.width, pan.height);
-      totalVolume += volume;
-      totalDoughWeight += this.calculateDoughWeight(pan.length, pan.width, pan.height, gramsPerCubicCm);
+      totalVolume += this.calculatePanVolume(pan.length, pan.width, pan.height);
+      totalDoughWeight += this.calculateDoughWeight(pan.length, pan.width, pan.height, percentOfCapacity);
     });
 
     return {
-      gramsPerCubicCm,
+      percentOfCapacity,
       totalVolume: Math.round(totalVolume * 10) / 10,
       totalDoughWeight: Math.round(totalDoughWeight * 10) / 10
     };
   }
 
   /**
-   * Calculate grams per cubic cm from total weight and dimensions
-   * Useful for reverse calculations
+   * Work backwards from a dough weight you already know fits a pan. Three of
+   * these from your own pans beats any published table.
    */
-  calculateGramsPerCubicCm(length: number, width: number, height: number, totalWeight: number): number {
+  calculatePercentFromWeight(length: number, width: number, height: number, doughWeight: number): number {
     const volume = this.calculatePanVolume(length, width, height);
     if (volume === 0) return 0;
-    return Math.round((totalWeight / volume) * 1000) / 1000; // Round to 3 decimal places
+    return Math.round((doughWeight / volume) * 100 * 10) / 10;
+  }
+
+  /**
+   * The same ratio expressed as g/cm3, for cross-checking against sources that
+   * state it that way.
+   */
+  gramsPerCubicCm(percentOfCapacity: number): number {
+    return Math.round((percentOfCapacity / 100) * 1000) / 1000;
   }
 
   /**
