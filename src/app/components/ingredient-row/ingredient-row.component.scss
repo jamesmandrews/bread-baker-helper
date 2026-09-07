@@ -2,16 +2,44 @@
   display: block;
 }
 
+/* A table row, not a stack of form controls. Inputs are borderless until you
+   reach for them, which roughly halves the row height and lets a long recipe
+   fit without the list ever needing to scroll. */
 .ingredient-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 108px 108px 34px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 88px 88px 26px;
+  gap: 4px;
   align-items: center;
-  padding: 7px 18px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line-soft);
   transition: background 0.12s;
+
+  &:last-child {
+    border-bottom: 0;
+  }
 
   &:hover {
     background: var(--line-soft);
+  }
+
+  input {
+    font-size: 14px;
+    background: transparent;
+    border-color: transparent;
+    padding: 6px 8px;
+  }
+
+  input:hover:not([readonly]) {
+    background: var(--panel-2);
+    border-color: var(--line);
+  }
+
+  input:focus-visible {
+    background: var(--panel-2);
+  }
+
+  input[readonly] {
+    background: transparent;
   }
 }
 
@@ -21,13 +49,13 @@
 
   input {
     text-align: right;
-    padding-right: 22px;
+    padding-right: 20px;
   }
 
   .unit {
     position: absolute;
     top: 50%;
-    right: 8px;
+    right: 7px;
     transform: translateY(-50%);
     font-family: var(--font-num);
     font-size: 10px;
@@ -40,6 +68,7 @@
 input.locked {
   color: var(--dim);
   border-style: dashed;
+  border-color: var(--line);
 }
 
 /* Marks the row everything else is a percentage of. */
@@ -52,10 +81,16 @@ input.locked {
   opacity: 0.75;
 }
 
+.remove-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+}
+
 @media (max-width: 560px) {
   .ingredient-row {
-    grid-template-columns: 1fr 74px 74px 26px;
-    gap: 6px;
-    padding: 5px 10px;
+    grid-template-columns: minmax(0, 1fr) 70px 70px 24px;
+    gap: 2px;
+    padding: 0 10px;
   }
 }

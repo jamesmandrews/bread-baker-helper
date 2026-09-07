@@ -100,11 +100,15 @@
 
 /* --- Stage ---------------------------------------------------------------- */
 
+/* Flex rather than grid so the calculator's max-height resolves against a
+   definite height. As a grid track sized to content it did not, and long
+   recipes were silently clipped by the shell instead of scrolling. */
 .stage {
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  min-height: 0; /* lets the grid row actually constrain the child */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
   padding: 14px 16px;
 }
 
@@ -201,6 +205,18 @@
 
 .help dd {
   margin: 0;
+}
+
+@media (max-width: 860px) {
+  :host,
+  .shell {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .stage {
+    overflow: visible;
+  }
 }
 
 @media (max-width: 720px) {

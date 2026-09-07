@@ -259,13 +259,19 @@ input[type="number"] {
 }
 
 /* Scrolling ---------------------------------------------------------------
-   Only lists scroll, never the shell. A real recipe is 4-8 ingredients so this
-   cap is a safety net, not a design premise -- it should never engage.
+   Only lists scroll, never the shell.
+
+   The cap is measured, not decorative: percentage max-heights resolve to
+   nothing here because every ancestor is content-sized, so without it a long
+   recipe pushes the "add" button past the bottom of a shell that clips rather
+   than scrolls. Subtracted below are the bar, the stage padding, the readout
+   and the list's own header and footer. At 31px a row that leaves room for
+   roughly 12 ingredients on a 700px screen and 18 on a 900px one.
    ------------------------------------------------------------------------- */
 
 .ingredients-list,
 .pans-list {
-  max-height: 54vh;
+  max-height: calc(100dvh - 320px);
 }
 
 .scroll-y {
@@ -327,13 +333,14 @@ app-pan-volume-calculator {
   display: contents;
 }
 
-/* Content-sized, not stretched: the panels are as tall as what is in them and
-   the shell centres them. Stretching to fill left a hollow box. */
+/* Content-sized and top-aligned: panels are as tall as what is in them and
+   grow downward as rows are added, rather than stretching to fill and leaving
+   a hollow box. */
 .calc {
   display: grid;
   grid-template-rows: auto auto;
   gap: 12px;
-  width: min(1120px, 100%);
+  width: min(920px, 100%);
   max-height: 100%;
   min-height: 0;
 }
@@ -431,16 +438,29 @@ app-pan-volume-calculator {
   color: var(--dim);
 }
 
+/* Narrow screens scroll the page normally. Locking the viewport is a desktop
+   promise: on a phone the natural gesture is to scroll, and nesting a scroll
+   area inside a fixed shell is worse than just letting the document move. */
 @media (max-width: 860px) {
+  html,
+  body {
+    overflow: auto;
+  }
+
   .workspace {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
+    grid-template-rows: auto auto;
   }
 
   .controls-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+  }
+
+  .ingredients-list,
+  .pans-list {
+    max-height: none;
   }
 
   .readout-item .value {

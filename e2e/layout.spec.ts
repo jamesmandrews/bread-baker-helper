@@ -7,11 +7,16 @@ import { test, expect, type Page } from '@playwright/test';
  * recipe loaded.
  */
 
-const VIEWPORTS = [
+/**
+ * Locking the viewport is a desktop promise. Phones scroll the page normally,
+ * so they are checked for reachability rather than for zero overflow.
+ */
+const LOCKED_VIEWPORTS = [
   { name: 'desktop', width: 1440, height: 900 },
-  { name: 'short laptop', width: 1280, height: 700 },
-  { name: 'phone', width: 390, height: 844 }
+  { name: 'short laptop', width: 1280, height: 700 }
 ];
+
+const PHONE = { name: 'phone', width: 390, height: 844 };
 
 const documentOverflows = (page: Page) =>
   page.evaluate(() => {
@@ -19,8 +24,20 @@ const documentOverflows = (page: Page) =>
     return el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
   });
 
+/**
+ * Document overflow alone is not enough: the shell sets `overflow: hidden`, so
+ * content that runs past the bottom is clipped and silently unreachable rather
+ * than making the page scroll. Anything interactive has to stay inside the
+ * viewport on its own.
+ */
+const isWithinViewport = async (page: Page, selector: string) =>
+  page.evaluate(sel => {
+    const r = document.querySelector(sel)!.getBoundingClientRect();
+    return r.top >= 0 && r.bottom <= window.innerHeight;
+  }, selector);
+
 test.describe('viewport-locked layout', () => {
-  for (const vp of VIEWPORTS) {
+  for (const vp of LOCKED_VIEWPORTS) {
     test(`fits on ${vp.name} across every tab`, async ({ page }) => {
       await page.setViewportSize({ width: vp.width, height: vp.height });
       await page.goto('/');
@@ -47,8 +64,48 @@ test.describe('viewport-locked layout', () => {
       await expect(page.locator('app-ingredient-row')).toHaveCount(8);
 
       expect(await documentOverflows(page)).toBe(false);
+      expect(await isWithinViewport(page, '.add-ingredient-btn')).toBe(true);
+    });
+
+    test(`keeps controls reachable on ${vp.name} past the fold`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height });
+      await page.goto('/');
+
+      // Well past any real recipe: the list must scroll inside its panel and
+      // leave the footer on screen, not push it out of a clipped shell.
+      for (let i = 0; i < 16; i++) {
+        await page.getByRole('button', { name: '+ Add ingredient' }).click();
+      }
+      await expect(page.locator('app-ingredient-row')).toHaveCount(20);
+
+      expect(await documentOverflows(page)).toBe(false);
+      expect(await isWithinViewport(page, '.add-ingredient-btn')).toBe(true);
+      expect(await isWithinViewport(page, '.readout')).toBe(true);
     });
   }
+
+  test(`${PHONE.name} scrolls the page rather than clipping`, async ({ page }) => {
+    await page.setViewportSize({ width: PHONE.width, height: PHONE.height });
+    await page.goto('/');
+
+    for (let i = 0; i < 16; i++) {
+      await page.getByRole('button', { name: '+ Add ingredient' }).click();
+    }
+    await expect(page.locator('app-ingredient-row')).toHaveCount(20);
+
+    // Overflow is fine here; being unable to reach the content is not.
+    const add = page.locator('.add-ingredient-btn');
+    await add.scrollIntoViewIfNeeded();
+    await expect(add).toBeVisible();
+    expect(await isWithinViewport(page, '.add-ingredient-btn')).toBe(true);
+  });
+
+  test('phone still fits a default recipe without scrolling', async ({ page }) => {
+    await page.setViewportSize({ width: PHONE.width, height: PHONE.height });
+    await page.goto('/');
+
+    expect(await documentOverflows(page)).toBe(false);
+  });
 });
 
 test.describe('help sheet', () => {

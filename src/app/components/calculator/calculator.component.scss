@@ -23,13 +23,14 @@
 /* Must track ingredient-row's own grid so headings sit over their fields. */
 .ingredients-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 108px 108px 34px;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) 88px 88px 26px;
+  gap: 4px;
   align-items: center;
 
   .col-percentage,
   .col-weight {
     text-align: right;
+    padding-right: 8px;
   }
 }
 
@@ -51,8 +52,8 @@
 
 @media (max-width: 560px) {
   .ingredients-header {
-    grid-template-columns: 1fr 74px 74px 26px;
-    gap: 6px;
+    grid-template-columns: minmax(0, 1fr) 70px 70px 24px;
+    gap: 2px;
     padding-inline: 10px;
   }
 }
