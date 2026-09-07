@@ -20,6 +20,8 @@
   /* Text */
   --text: #e8e6e1;
   --muted: #868c96;
+  /* Borders and rules only. At 2.94:1 on --panel this fails AA for text; use
+     --muted (5.25:1) for anything readable, however small or incidental. */
   --dim: #5d636d;
 
   /* Accent — crust. Used for the readout and active state, nothing else. */
@@ -167,7 +169,7 @@ input[type="number"] {
 }
 
 .field > .label {
-  color: var(--dim);
+  color: var(--muted);
 }
 
 /* Buttons ----------------------------------------------------------------- */
@@ -212,7 +214,7 @@ input[type="number"] {
   padding: 0;
   font-size: 15px;
   line-height: 1;
-  color: var(--dim);
+  color: var(--muted);
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
@@ -374,7 +376,7 @@ app-pan-volume-calculator {
   margin-left: 4px;
   font-size: 13px;
   font-style: normal;
-  color: var(--dim);
+  color: var(--muted);
 }
 
 /* Only the headline number wears the accent. */
@@ -386,7 +388,7 @@ app-pan-volume-calculator {
 
 .readout-item.primary .value i {
   font-size: 18px;
-  color: var(--ember);
+  color: var(--crust); /* --ember was 4.06:1 here; 18px is not "large text" */
 }
 
 .workspace {
@@ -426,8 +428,8 @@ app-pan-volume-calculator {
   right: 10px;
   transform: translateY(-50%);
   font-family: var(--font-num);
-  font-size: 10px;
-  color: var(--dim);
+  font-size: 11px;
+  color: var(--muted);
   pointer-events: none;
 }
 
@@ -435,7 +437,7 @@ app-pan-volume-calculator {
   margin: 0;
   font-size: 11px;
   line-height: 1.5;
-  color: var(--dim);
+  color: var(--muted);
 }
 
 /* Narrow screens scroll the page normally. Locking the viewport is a desktop

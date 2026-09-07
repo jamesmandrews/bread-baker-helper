@@ -170,6 +170,23 @@ here drive real DOM events and assert on rendered output:
 Await `fixture.whenStable()` after dispatching an event; there is no zone to
 flush.
 
+## Colour and contrast
+
+`--dim` (#5D636D) is for **borders and rules only**. It measures 2.94:1 on
+`--panel` and 3.17:1 on `--ink`, so it fails WCAG AA for text at any size. Use
+`--muted` (#868C96, 5.25:1) for anything readable, however small or incidental —
+unit suffixes and hints included. A 1px border is judged at 3:1, which `--dim`
+clears, which is why it survives there.
+
+`e2e/contrast.spec.ts` enforces this. It judges every sample against
+`--line-soft` (#1F232A), the lightest surface in the theme, because resolving
+each element's real backdrop breaks on the readout's gradient — a `background`
+shorthand clears `background-color`, so walking up the tree finds a darker
+ancestor and flatters the result. Worst-case is both simpler and stricter.
+
+Note that 18px is *not* WCAG "large text" (that starts at 18.66px bold or 24px
+normal), so 18px accents need the full 4.5:1.
+
 ## Known issues
 
 Raised in review and deliberately deferred — don't treat these as settled:

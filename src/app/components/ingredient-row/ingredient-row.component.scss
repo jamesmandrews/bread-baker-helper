@@ -58,15 +58,15 @@
     right: 7px;
     transform: translateY(-50%);
     font-family: var(--font-num);
-    font-size: 10px;
-    color: var(--dim);
+    font-size: 11px;
+    color: var(--muted);
     pointer-events: none;
   }
 }
 
 /* Locked in dough-weight mode: readable, clearly not editable. */
 input.locked {
-  color: var(--dim);
+  color: var(--muted);
   border-style: dashed;
   border-color: var(--line);
 }
