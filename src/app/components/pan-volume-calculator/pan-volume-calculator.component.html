@@ -1,161 +1,130 @@
-<div class="pan-volume-calculator">
-  <h2>Pan Volume Calculator</h2>
-  <p class="description">Calculate dough weight needed for rectangular pans based on volume</p>
-
-  <!-- Density Preset Selection -->
-  <div class="preset-section">
-    <h3>Dough Density Presets</h3>
-    <div class="preset-buttons">
-      @for (preset of presets; track preset.name) {
-        <button
-          class="preset-button"
-          [class.active]="selectedPreset() === preset.name"
-          (click)="selectPreset(preset)">
-          <strong>{{ preset.name }}</strong>
-          <small>{{ preset.description }}</small>
-        </button>
-      }
+<div class="calc">
+  <section class="summary-section readout" aria-label="Results">
+    <div class="readout-item primary">
+      <span class="label">Total dough</span>
+      <span class="value num">{{ totalDoughWeight() }}<i>g</i></span>
     </div>
-  </div>
+    <div class="readout-item">
+      <span class="label">In kilos</span>
+      <span class="value num">{{ (totalDoughWeight() / 1000).toFixed(2) }}<i>kg</i></span>
+    </div>
+    <div class="readout-item">
+      <span class="label">In pounds</span>
+      <span class="value num">{{ (totalDoughWeight() / 453.592).toFixed(2) }}<i>lb</i></span>
+    </div>
+    <div class="readout-item">
+      <span class="label">Total volume</span>
+      <span class="value num">{{ totalVolumeLiters() }}<i>L</i></span>
+    </div>
+    <div class="readout-item">
+      <span class="label">Pans</span>
+      <span class="value num">{{ pans().length }}</span>
+    </div>
+  </section>
 
-  <!-- Manual Density Control -->
-  <div class="control-section">
-    <label for="gramsPerCubicCm">
-      Dough Density (g/cm³):
-      <input
-        type="number"
-        id="gramsPerCubicCm"
-        [value]="gramsPerCubicCm()"
-        (input)="updateGramsPerCubicCm(+$any($event.target).value)"
-        min="0.1"
-        max="1.5"
-        step="0.01"
-        class="input-small" />
-    </label>
-    <span class="info-text">
-      @if (selectedPreset() !== 'Custom') {
-        <span class="preset-indicator">Using {{ selectedPreset() }} preset</span>
-      } @else {
-        <span class="custom-indicator">Custom value</span>
-      }
-    </span>
-  </div>
-
-  <!-- Pans List -->
-  <div class="pans-section">
-    <h3>Pans</h3>
-
-    @for (pan of pans(); track pan.id) {
-      <div class="pan-row">
-        <div class="pan-info">
-          <label class="pan-label">Pan {{ pan.id }} Dimensions (cm):</label>
-          <div class="dimension-inputs">
-            <div class="input-group">
-              <label class="dimension-label">Length:</label>
-              <input
-                type="number"
-                [value]="pan.length"
-                (input)="updatePanDimensions(pan.id, +$any($event.target).value, pan.width, pan.height)"
-                min="1"
-                max="100"
-                step="0.5"
-                class="input-dimension" />
-              <span class="unit">cm</span>
-            </div>
-
-            <span class="multiply">×</span>
-
-            <div class="input-group">
-              <label class="dimension-label">Width:</label>
-              <input
-                type="number"
-                [value]="pan.width"
-                (input)="updatePanDimensions(pan.id, pan.length, +$any($event.target).value, pan.height)"
-                min="1"
-                max="100"
-                step="0.5"
-                class="input-dimension" />
-              <span class="unit">cm</span>
-            </div>
-
-            <span class="multiply">×</span>
-
-            <div class="input-group">
-              <label class="dimension-label">Height:</label>
-              <input
-                type="number"
-                [value]="pan.height"
-                (input)="updatePanDimensions(pan.id, pan.length, pan.width, +$any($event.target).value)"
-                min="1"
-                max="50"
-                step="0.5"
-                class="input-dimension" />
-              <span class="unit">cm</span>
-            </div>
-          </div>
-
-          <div class="pan-stats">
-            <span class="stat">Volume: <strong>{{ pan.volume }}</strong> cm³</span>
-            <span class="stat">Dough Needed: <strong>{{ pan.doughWeight }}</strong> g</span>
+  <div class="workspace">
+    <aside class="controls panel">
+      <div class="controls-body">
+        <div class="field">
+          <span class="label">Crumb</span>
+          <div class="preset-buttons">
+            @for (preset of presets; track preset.name) {
+              <button
+                type="button"
+                class="preset-button"
+                [class.active]="selectedPreset() === preset.name"
+                [attr.aria-pressed]="selectedPreset() === preset.name"
+                (click)="selectPreset(preset)">
+                <strong>{{ preset.name }}</strong>
+                <span class="num">{{ preset.gramsPerCubicCm }}</span>
+              </button>
+            }
           </div>
         </div>
 
-        @if (pans().length > 1) {
-          <button
-            class="remove-button"
-            (click)="removePan(pan.id)"
-            title="Remove pan">
-            ×
-          </button>
+        <div class="field">
+          <label class="label" for="gramsPerCubicCm">Dough density</label>
+          <div class="suffixed">
+            <input
+              type="number"
+              id="gramsPerCubicCm"
+              [value]="gramsPerCubicCm()"
+              (input)="updateGramsPerCubicCm(+$any($event.target).value)"
+              min="0.1"
+              max="1.5"
+              step="0.01" />
+            <span class="suffix">g/cm³</span>
+          </div>
+          <p class="hint">
+            @if (selectedPreset() !== 'Custom') {
+              Using the {{ selectedPreset() }} preset.
+            } @else {
+              Custom value.
+            }
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="pans panel">
+      <div class="panel-head">
+        <span class="label">Pans</span>
+        <span class="label">Length × width × height (cm)</span>
+      </div>
+
+      <div class="pans-list scroll-y">
+        @for (pan of pans(); track pan.id) {
+          <div class="pan-row">
+            <div class="pan-info">
+              <div class="dimensions">
+                <input
+                  type="number"
+                  [value]="pan.length"
+                  (input)="updatePanDimensions(pan.id, +$any($event.target).value, pan.width, pan.height)"
+                  min="1"
+                  max="100"
+                  step="0.5"
+                  aria-label="Length in centimetres" />
+                <span class="multiply">×</span>
+                <input
+                  type="number"
+                  [value]="pan.width"
+                  (input)="updatePanDimensions(pan.id, pan.length, +$any($event.target).value, pan.height)"
+                  min="1"
+                  max="100"
+                  step="0.5"
+                  aria-label="Width in centimetres" />
+                <span class="multiply">×</span>
+                <input
+                  type="number"
+                  [value]="pan.height"
+                  (input)="updatePanDimensions(pan.id, pan.length, pan.width, +$any($event.target).value)"
+                  min="1"
+                  max="50"
+                  step="0.5"
+                  aria-label="Height in centimetres" />
+              </div>
+
+              <div class="pan-stats">
+                <span class="stat"><span class="label">Volume</span> <strong class="num">{{ pan.volume }}</strong> cm³</span>
+                <span class="stat"><span class="label">Dough</span> <strong class="num">{{ pan.doughWeight }}</strong> g</span>
+              </div>
+            </div>
+
+            @if (pans().length > 1) {
+              <button type="button" class="btn-icon remove-button" (click)="removePan(pan.id)" aria-label="Remove pan">
+                ×
+              </button>
+            }
+          </div>
         }
       </div>
-    }
 
-    <button class="add-button" (click)="addPan()">
-      + Add Another Pan
-    </button>
-  </div>
-
-  <!-- Summary Section -->
-  <div class="summary-section">
-    <h3>Total Requirements</h3>
-    <div class="summary-grid">
-      <div class="summary-item">
-        <span class="summary-label">Total Pans:</span>
-        <span class="summary-value">{{ pans().length }}</span>
+      <div class="pans-foot">
+        <button type="button" class="btn btn-add add-button" (click)="addPan()">
+          + Add pan
+        </button>
       </div>
-      <div class="summary-item">
-        <span class="summary-label">Total Volume:</span>
-        <span class="summary-value">{{ totalVolume() }} cm³</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Volume (Liters):</span>
-        <span class="summary-value">{{ totalVolumeLiters() }} L</span>
-      </div>
-      <div class="summary-item highlight">
-        <span class="summary-label">Total Dough Needed:</span>
-        <span class="summary-value">{{ totalDoughWeight() }} g</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">In Pounds:</span>
-        <span class="summary-value">{{ (totalDoughWeight() / 453.592).toFixed(2) }} lbs</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">In Kilograms:</span>
-        <span class="summary-value">{{ (totalDoughWeight() / 1000).toFixed(2) }} kg</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Info Box -->
-  <div class="info-box">
-    <h4>How it works:</h4>
-    <ul>
-      <li>Enter your pan dimensions: Length × Width × Height (in centimeters)</li>
-      <li>Select a dough density preset or enter a custom value</li>
-      <li>The calculator determines dough weight: Volume × Density</li>
-      <li>Typical dough densities: Light (0.55 g/cm³), Standard (0.60 g/cm³), Dense (0.65 g/cm³)</li>
-      <li>Example: 30cm × 10cm × 10cm = 3000 cm³ × 0.60 g/cm³ = 1800g of dough</li>
-    </ul>
+    </section>
   </div>
 </div>

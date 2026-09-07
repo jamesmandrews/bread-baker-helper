@@ -1,76 +1,61 @@
+:host {
+  display: block;
+}
+
 .ingredient-row {
   display: grid;
-  grid-template-columns: 2fr 1fr auto 1fr auto auto;
-  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) 108px 108px 34px;
+  gap: 10px;
   align-items: center;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 7px 18px;
+  transition: background 0.12s;
 
   &:hover {
-    background-color: #f5f5f5;
+    background: var(--line-soft);
   }
+}
+
+/* Right-aligned figures so decimal points line up down the column. */
+.cell {
+  position: relative;
 
   input {
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 1rem;
-
-    &:focus {
-      outline: none;
-      border-color: #8b4513;
-    }
-
-    &.readonly {
-      background-color: #f0f0f0;
-      cursor: not-allowed;
-    }
-
-    &.locked {
-      background-color: #fff3cd;
-      border-color: #ffc107;
-      cursor: not-allowed;
-      position: relative;
-
-      &::after {
-        content: '🔒';
-        position: absolute;
-        right: 0.5rem;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.8rem;
-      }
-    }
-  }
-
-  .ingredient-name {
-    font-weight: 500;
-  }
-
-  .ingredient-percentage,
-  .ingredient-weight {
     text-align: right;
+    padding-right: 22px;
   }
 
   .unit {
-    color: #666;
-    font-size: 0.9rem;
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    font-family: var(--font-num);
+    font-size: 10px;
+    color: var(--dim);
+    pointer-events: none;
   }
+}
 
-  .remove-btn {
-    background: none;
-    border: none;
-    color: #999;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    transition: all 0.2s;
+/* Locked in dough-weight mode: readable, clearly not editable. */
+input.locked {
+  color: var(--dim);
+  border-style: dashed;
+}
 
-    &:hover {
-      background-color: #fee;
-      color: #c00;
-    }
+/* Marks the row everything else is a percentage of. */
+.flour-pin {
+  justify-self: center;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--crust);
+  opacity: 0.75;
+}
+
+@media (max-width: 560px) {
+  .ingredient-row {
+    grid-template-columns: 1fr 74px 74px 26px;
+    gap: 6px;
+    padding: 5px 10px;
   }
 }

@@ -1,1 +1,464 @@
-/* You can add global styles to this file, and also import other style files */
+/* ---------------------------------------------------------------------------
+   Bread Helper — "scale panel"
+
+   The app is styled after the thing it replaces: the display of a digital
+   kitchen scale. Dark ground, oversized tabular digits for values, small
+   wide-tracked uppercase for labels. One accent (crust amber) and it is spent
+   only on the answer you came for.
+
+   Layout is viewport-locked: the shell never scrolls, only lists inside it do.
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Ground and surfaces */
+  --ink: #0e0f12;
+  --panel: #16181d;
+  --panel-2: #1e2128;
+  --line: #282c34;
+  --line-soft: #1f232a;
+
+  /* Text */
+  --text: #e8e6e1;
+  --muted: #868c96;
+  --dim: #5d636d;
+
+  /* Accent — crust. Used for the readout and active state, nothing else. */
+  --crust: #e8873a;
+  --ember: #c25a2e;
+  --crust-glow: rgba(232, 135, 58, 0.14);
+
+  /* States */
+  --caution: #d9705e;
+  --cool: #6fa8c7;
+
+  /* Type */
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Metrics */
+  --bar-h: 52px;
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Every number in this app is tabular so digits do not jitter while typing. */
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+}
+
+/* Small wide-tracked uppercase — the instrument label voice. */
+.label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* --- Primitives -----------------------------------------------------------
+   Shared here rather than per component: three calculators repeat the same
+   panel/field/button shapes, and duplicating them blew the component style
+   budget.
+   ------------------------------------------------------------------------- */
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* Inputs ------------------------------------------------------------------ */
+
+input[type="text"],
+input[type="number"],
+select {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  width: 100%;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input[type="text"] {
+  font-family: var(--font-ui);
+}
+
+select {
+  font-family: var(--font-ui);
+  cursor: pointer;
+}
+
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: none;
+  border-color: var(--crust);
+  box-shadow: 0 0 0 3px var(--crust-glow);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--crust);
+  outline-offset: 2px;
+}
+
+input[readonly],
+input.readonly {
+  color: var(--muted);
+  background: var(--line-soft);
+  cursor: default;
+}
+
+/* Chrome/Safari number spinners are noise at this density. */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* A labelled field: tiny caps label above a control. */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field > .label {
+  color: var(--dim);
+}
+
+/* Buttons ----------------------------------------------------------------- */
+
+.btn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--text);
+    border-color: var(--dim);
+  }
+}
+
+/* Dashed = "adds a thing". Reads as an empty slot waiting to be filled. */
+.btn-add {
+  width: 100%;
+  border-style: dashed;
+  background: transparent;
+  padding: 12px;
+
+  &:hover {
+    color: var(--crust);
+    border-color: var(--crust);
+    background: var(--crust-glow);
+  }
+}
+
+.btn-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: var(--caution);
+    background: rgba(217, 112, 94, 0.12);
+  }
+}
+
+/* Segmented control — mutually exclusive modes. */
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+
+  button {
+    flex: 1;
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    padding: 9px 8px;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+
+    &:hover {
+      color: var(--text);
+    }
+
+    &.active {
+      color: var(--ink);
+      background: var(--crust);
+    }
+  }
+}
+
+/* Scrolling ---------------------------------------------------------------
+   Only lists scroll, never the shell. A real recipe is 4-8 ingredients so this
+   cap is a safety net, not a design premise -- it should never engage.
+   ------------------------------------------------------------------------- */
+
+.ingredients-list,
+.pans-list {
+  max-height: 54vh;
+}
+
+.scroll-y {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 4px;
+  }
+}
+
+/* Notices ----------------------------------------------------------------- */
+
+.notice {
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: var(--radius-sm);
+  border-left: 2px solid;
+  padding: 7px 10px;
+}
+
+.notice-caution {
+  color: var(--caution);
+  border-color: var(--caution);
+  background: rgba(217, 112, 94, 0.09);
+}
+
+.notice-info {
+  color: var(--cool);
+  border-color: var(--cool);
+  background: rgba(111, 168, 199, 0.09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- Calculator shell -----------------------------------------------------
+   All three calculators share the same frame: a readout strip across the top,
+   then a controls column beside a list that owns the remaining height. Defined
+   once here rather than three times in component styles.
+   ------------------------------------------------------------------------- */
+
+app-calculator,
+app-doughball-calculator,
+app-pan-volume-calculator {
+  display: contents;
+}
+
+/* Content-sized, not stretched: the panels are as tall as what is in them and
+   the shell centres them. Stretching to fill left a hollow box. */
+.calc {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 12px;
+  width: min(1120px, 100%);
+  max-height: 100%;
+  min-height: 0;
+}
+
+/* The signature: the answer set large, above the inputs rather than below. */
+.readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 48px;
+  align-items: baseline;
+  padding: 18px 24px;
+  background: linear-gradient(180deg, var(--panel) 0%, #131519 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.readout-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.readout-item .value {
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.readout-item .value i {
+  margin-left: 4px;
+  font-size: 13px;
+  font-style: normal;
+  color: var(--dim);
+}
+
+/* Only the headline number wears the accent. */
+.readout-item.primary .value {
+  font-size: 52px;
+  font-weight: 600;
+  color: var(--crust);
+}
+
+.readout-item.primary .value i {
+  font-size: 18px;
+  color: var(--ember);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  align-items: start;
+  gap: 12px;
+  min-height: 0;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.controls-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+}
+
+/* Unit sits inside the field so the label above stays a label. */
+.suffixed {
+  position: relative;
+}
+
+.suffixed input {
+  padding-right: 34px;
+}
+
+.suffixed .suffix {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-family: var(--font-num);
+  font-size: 10px;
+  color: var(--dim);
+  pointer-events: none;
+}
+
+.hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--dim);
+}
+
+@media (max-width: 860px) {
+  .workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .controls-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .readout-item .value {
+    font-size: 19px;
+  }
+
+  .readout-item.primary .value {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 560px) {
+  .readout {
+    gap: 6px 20px;
+    padding: 10px 12px;
+  }
+
+  .controls-body {
+    grid-template-columns: 1fr;
+  }
+}

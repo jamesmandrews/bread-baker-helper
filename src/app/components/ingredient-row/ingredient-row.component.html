@@ -1,4 +1,4 @@
-<div class="ingredient-row">
+<div class="ingredient-row" [class.is-flour]="isFlourRow()">
   <input
     type="text"
     class="ingredient-name"
@@ -6,38 +6,40 @@
     (input)="onNameChange($any($event.target).value)"
     [readonly]="isFlourRow()"
     [class.readonly]="isFlourRow()"
-    />
+    aria-label="Ingredient name" />
 
-  <input
-    type="number"
-    class="ingredient-percentage"
-    [value]="ingredient().percentage"
-    (input)="onPercentageChange($any($event.target).value)"
-    [readonly]="isFlourRow() || !isPercentageEditable()"
-    [class.readonly]="isFlourRow() || !isPercentageEditable()"
-    [class.locked]="!isPercentageEditable() && !isFlourRow()"
-    min="0"
-    step="0.1"
-    />
-  <span class="unit">%</span>
+  <div class="cell">
+    <input
+      type="number"
+      class="ingredient-percentage"
+      [value]="ingredient().percentage"
+      (input)="onPercentageChange($any($event.target).value)"
+      [readonly]="isFlourRow() || !isPercentageEditable()"
+      [class.readonly]="isFlourRow() || !isPercentageEditable()"
+      [class.locked]="!isPercentageEditable() && !isFlourRow()"
+      min="0"
+      step="0.1"
+      aria-label="Percentage" />
+    <span class="unit">%</span>
+  </div>
 
-  <input
-    type="number"
-    class="ingredient-weight"
-    [value]="ingredient().weight"
-    (input)="onWeightChange($any($event.target).value)"
-    min="0"
-    step="1"
-    />
-  <span class="unit">g</span>
+  <div class="cell">
+    <input
+      type="number"
+      class="ingredient-weight"
+      [value]="ingredient().weight"
+      (input)="onWeightChange($any($event.target).value)"
+      min="0"
+      step="1"
+      aria-label="Weight in grams" />
+    <span class="unit">g</span>
+  </div>
 
   @if (!isFlourRow()) {
-    <button
-      class="remove-btn"
-      (click)="onRemove()"
-      aria-label="Remove ingredient"
-      >
+    <button type="button" class="btn-icon remove-btn" (click)="onRemove()" aria-label="Remove ingredient">
       ×
     </button>
+  } @else {
+    <span class="flour-pin" title="Flour is the 100% base"></span>
   }
 </div>

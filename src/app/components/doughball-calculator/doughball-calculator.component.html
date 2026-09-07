@@ -1,119 +1,109 @@
-<div class="doughball-calculator">
-  <h2>Pizza Doughball Calculator</h2>
-  <p class="description">Calculate the amount of dough needed for your pizza pans</p>
-
-  <!-- Preset Selection -->
-  <div class="preset-section">
-    <h3>Pizza Style Presets</h3>
-    <div class="preset-buttons">
-      @for (preset of presets; track preset.name) {
-        <button
-          class="preset-button"
-          [class.active]="selectedPreset() === preset.name"
-          (click)="selectPreset(preset)">
-          <strong>{{ preset.name }}</strong>
-          <small>{{ preset.description }}</small>
-        </button>
-      }
+<div class="calc">
+  <section class="summary-section readout" aria-label="Results">
+    <div class="readout-item primary">
+      <span class="label">Total dough</span>
+      <span class="value num">{{ totalDoughWeight() }}<i>g</i></span>
     </div>
-  </div>
+    <div class="readout-item">
+      <span class="label">In pounds</span>
+      <span class="value num">{{ (totalDoughWeight() / 453.592).toFixed(2) }}<i>lb</i></span>
+    </div>
+    <div class="readout-item">
+      <span class="label">Total area</span>
+      <span class="value num">{{ totalArea() }}<i>in²</i></span>
+    </div>
+    <div class="readout-item">
+      <span class="label">Pans</span>
+      <span class="value num">{{ pans().length }}</span>
+    </div>
+  </section>
 
-  <!-- Manual Grams Per Square Inch Control -->
-  <div class="control-section">
-    <label for="gramsPerSquareInch">
-      Dough Loading (g/in²):
-      <input
-        type="number"
-        id="gramsPerSquareInch"
-        [value]="gramsPerSquareInch()"
-        (input)="updateGramsPerSquareInch(+$any($event.target).value)"
-        min="0.1"
-        max="10"
-        step="0.1"
-        class="input-small" />
-    </label>
-    <span class="info-text">
-      @if (selectedPreset() !== 'Custom') {
-        <span class="preset-indicator">Using {{ selectedPreset() }} preset</span>
-      } @else {
-        <span class="custom-indicator">Custom value</span>
-      }
-    </span>
-  </div>
-
-  <!-- Pizza Pans List -->
-  <div class="pans-section">
-    <h3>Pizza Pans</h3>
-
-    @for (pan of pans(); track pan.id) {
-      <div class="pan-row">
-        <div class="pan-info">
-          <label>
-            Pan {{ pan.id }} - Diameter (inches):
-            <input
-              type="number"
-              [value]="pan.diameter"
-              (input)="updatePanDiameter(pan.id, +$any($event.target).value)"
-              min="1"
-              max="30"
-              step="0.5"
-              class="input-medium" />
-          </label>
-
-          <div class="pan-stats">
-            <span class="stat">Area: <strong>{{ getPanArea(pan.diameter) }}</strong> sq in</span>
-            <span class="stat">Dough: <strong>{{ pan.doughWeight }}</strong> g</span>
+  <div class="workspace">
+    <aside class="controls panel">
+      <div class="controls-body">
+        <div class="field">
+          <span class="label">Style</span>
+          <div class="preset-buttons">
+            @for (preset of presets; track preset.name) {
+              <button
+                type="button"
+                class="preset-button"
+                [class.active]="selectedPreset() === preset.name"
+                [attr.aria-pressed]="selectedPreset() === preset.name"
+                (click)="selectPreset(preset)">
+                <strong>{{ preset.name }}</strong>
+                <span class="num">{{ preset.gramsPerSquareInch }}</span>
+              </button>
+            }
           </div>
         </div>
 
-        @if (pans().length > 1) {
-          <button
-            class="remove-button"
-            (click)="removePan(pan.id)"
-            title="Remove pan">
-            ×
-          </button>
+        <div class="field">
+          <label class="label" for="gramsPerSquareInch">Dough loading</label>
+          <div class="suffixed">
+            <input
+              type="number"
+              id="gramsPerSquareInch"
+              [value]="gramsPerSquareInch()"
+              (input)="updateGramsPerSquareInch(+$any($event.target).value)"
+              min="0.1"
+              max="10"
+              step="0.1" />
+            <span class="suffix">g/in²</span>
+          </div>
+          <p class="hint">
+            @if (selectedPreset() !== 'Custom') {
+              Using the {{ selectedPreset() }} preset.
+            } @else {
+              Custom value.
+            }
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <section class="pans panel">
+      <div class="panel-head">
+        <span class="label">Pizza pans</span>
+        <span class="label">Diameter</span>
+      </div>
+
+      <div class="pans-list scroll-y">
+        @for (pan of pans(); track pan.id) {
+          <div class="pan-row">
+            <div class="pan-info">
+              <div class="cell">
+                <input
+                  type="number"
+                  [value]="pan.diameter"
+                  (input)="updatePanDiameter(pan.id, +$any($event.target).value)"
+                  min="1"
+                  max="30"
+                  step="0.5"
+                  aria-label="Pan diameter in inches" />
+                <span class="unit">in</span>
+              </div>
+
+              <div class="pan-stats">
+                <span class="stat"><span class="label">Area</span> <strong class="num">{{ getPanArea(pan.diameter) }}</strong> in²</span>
+                <span class="stat"><span class="label">Dough</span> <strong class="num">{{ pan.doughWeight }}</strong> g</span>
+              </div>
+            </div>
+
+            @if (pans().length > 1) {
+              <button type="button" class="btn-icon remove-button" (click)="removePan(pan.id)" aria-label="Remove pan">
+                ×
+              </button>
+            }
+          </div>
         }
       </div>
-    }
 
-    <button class="add-button" (click)="addPan()">
-      + Add Another Pan
-    </button>
-  </div>
-
-  <!-- Summary Section -->
-  <div class="summary-section">
-    <h3>Total Requirements</h3>
-    <div class="summary-grid">
-      <div class="summary-item">
-        <span class="summary-label">Total Pans:</span>
-        <span class="summary-value">{{ pans().length }}</span>
+      <div class="pans-foot">
+        <button type="button" class="btn btn-add add-button" (click)="addPan()">
+          + Add pan
+        </button>
       </div>
-      <div class="summary-item">
-        <span class="summary-label">Total Area:</span>
-        <span class="summary-value">{{ totalArea() }} sq in</span>
-      </div>
-      <div class="summary-item highlight">
-        <span class="summary-label">Total Dough Needed:</span>
-        <span class="summary-value">{{ totalDoughWeight() }} g</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">In Pounds:</span>
-        <span class="summary-value">{{ (totalDoughWeight() / 453.592).toFixed(2) }} lbs</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Info Box -->
-  <div class="info-box">
-    <h4>How it works:</h4>
-    <ul>
-      <li>Select a pizza style preset or enter a custom dough loading factor</li>
-      <li>Enter your pan diameter(s) in inches</li>
-      <li>The calculator determines the dough weight based on pan area × dough loading</li>
-      <li>Dough loading values: Thin (2.55 g/in²), Medium (3.40 g/in²), Thick (5.10 g/in²), Detroit (6.24 g/in²)</li>
-      <li>Based on traditional factors: 0.09-0.22 oz/in² converted to grams</li>
-    </ul>
+    </section>
   </div>
 </div>

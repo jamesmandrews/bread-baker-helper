@@ -1,41 +1,95 @@
-<div class="app-container">
-  <header class="app-header">
-    <h1>Bread Helper</h1>
-    <p class="tagline">Tools for better baking</p>
+<div class="shell">
+  <header class="topbar">
+    <h1 class="wordmark">Bread Helper</h1>
+
+    <nav class="tabs" aria-label="Calculators">
+      @for (tab of tabs; track tab.id) {
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeTab() === tab.id"
+          [attr.aria-label]="tab.full"
+          [attr.aria-current]="activeTab() === tab.id ? 'page' : null"
+          (click)="selectTab(tab.id)">
+          {{ tab.short }}
+        </button>
+      }
+    </nav>
+
+    <button
+      type="button"
+      class="help-trigger"
+      aria-label="How this calculator works"
+      (click)="openHelp()">
+      ?
+    </button>
   </header>
 
-  <nav class="tab-navigation">
-    <button
-      class="tab-button"
-      [class.active]="activeTab() === 'bakers-percentage'"
-      (click)="selectTab('bakers-percentage')">
-      Baker's Percentage Calculator
-    </button>
-    <button
-      class="tab-button"
-      [class.active]="activeTab() === 'doughball'"
-      (click)="selectTab('doughball')">
-      Pizza Doughball Calculator
-    </button>
-    <button
-      class="tab-button"
-      [class.active]="activeTab() === 'pan-volume'"
-      (click)="selectTab('pan-volume')">
-      Pan Volume Calculator
-    </button>
-  </nav>
-
-  <main class="tab-content">
+  <main class="stage">
     @if (activeTab() === 'bakers-percentage') {
-      <app-calculator></app-calculator>
+      <app-calculator />
     }
     @if (activeTab() === 'doughball') {
-      <app-doughball-calculator></app-doughball-calculator>
+      <app-doughball-calculator />
     }
     @if (activeTab() === 'pan-volume') {
-      <app-pan-volume-calculator></app-pan-volume-calculator>
+      <app-pan-volume-calculator />
     }
   </main>
 </div>
+
+<dialog #help class="help" (click)="$event.target === help ? closeHelp() : null">
+  <article class="help-body">
+    <header class="help-head">
+      <h2>{{ activeTabDef().full }}</h2>
+      <button type="button" class="btn-icon" aria-label="Close" (click)="closeHelp()">×</button>
+    </header>
+
+    @if (activeTab() === 'bakers-percentage') {
+      <p>
+        Flour is always 100%. Every other ingredient is a percentage of the total
+        flour weight, so a recipe scales to any batch size without changing how it
+        behaves.
+      </p>
+      <p class="eg">70% hydration means 700 g water per 1000 g flour.</p>
+      <dl>
+        <dt>Flour weight</dt>
+        <dd>Set the flour and everything else follows from its percentage.</dd>
+        <dt>Target dough weight</dt>
+        <dd>Work backwards instead: give the finished weight you need and the flour is solved for you. Only hydration stays editable.</dd>
+        <dt>Editing a flour weight</dt>
+        <dd>Rescales the whole recipe in proportion, so recipes using two flours keep their ratio.</dd>
+      </dl>
+    }
+
+    @if (activeTab() === 'doughball') {
+      <p>
+        Dough for a round pizza is measured per unit of surface area, not per pan.
+        Pick a style, or set the loading directly, and each pan is sized from
+        <span class="num">area × loading</span>.
+      </p>
+      <dl>
+        <dt>Thin</dt><dd>2.55 g/in² — NY-style</dd>
+        <dt>Medium</dt><dd>3.40 g/in² — hand-tossed</dd>
+        <dt>Thick</dt><dd>5.10 g/in² — deep dish or pan</dd>
+        <dt>Detroit</dt><dd>6.24 g/in² — square, extra thick</dd>
+      </dl>
+      <p class="eg">Converted from the traditional 0.09–0.22 oz/in² range.</p>
+    }
+
+    @if (activeTab() === 'pan-volume') {
+      <p>
+        Dough for a loaf pan is measured against the volume it has to fill:
+        <span class="num">length × width × height × density</span>.
+      </p>
+      <p class="eg">30 × 10 × 10 cm = 3000 cm³, at 0.60 g/cm³ = 1800 g.</p>
+      <p class="caveat">
+        These density presets are unverified and look high — loaf-pan practice is
+        nearer 0.35–0.45 g/cm³. Check the result against a pan you know before
+        trusting it.
+      </p>
+    }
+  </article>
+</dialog>
 
 <router-outlet />
